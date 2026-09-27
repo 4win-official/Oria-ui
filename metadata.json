@@ -1,0 +1,6 @@
+{
+  "name": "Oria UI",
+  "description": "Comprehensive Android system UI transformation launcher with Dynamic Island status bar, iOS Control Center & Notification Shade, Standby lock screen, volume & brightness HUD, multitasking app switcher, interactive smart widgets, and instant app drawer.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
