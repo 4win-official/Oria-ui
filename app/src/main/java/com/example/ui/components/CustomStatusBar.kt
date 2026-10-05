@@ -102,7 +102,11 @@ fun CustomStatusBar(
             .fillMaxWidth()
             .then(dragModifier)
             .windowInsetsPadding(WindowInsets.statusBars)
-            .padding(horizontal = 18.dp, vertical = 4.dp)
+            .padding(horizontal = 16.dp, vertical = 4.dp)
+            .clip(RoundedCornerShape(24.dp))
+            .background(Color.Black.copy(alpha = 0.50f))
+            .border(0.8.dp, Color.White.copy(alpha = 0.22f), RoundedCornerShape(24.dp))
+            .padding(horizontal = 16.dp, vertical = 8.dp)
             .testTag("custom_status_bar"),
         contentAlignment = Alignment.Center
     ) {

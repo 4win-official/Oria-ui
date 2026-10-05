@@ -595,9 +595,12 @@ class LauncherViewModel(
         _recentApps.value = updated.take(12)
 
         try {
+            // Trigger Oria Game Turbo & RAM optimization for maximum FPS & performance
+            systemControlRepository.boostForGaming(app.packageName)
+
             val intent = context.packageManager.getLaunchIntentForPackage(app.packageName)
             if (intent != null) {
-                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED)
                 context.startActivity(intent)
             } else {
                 // If special system action

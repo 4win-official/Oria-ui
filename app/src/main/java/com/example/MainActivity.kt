@@ -1,8 +1,11 @@
 package com.example
 
 import android.Manifest
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
+import com.example.service.TopTouchInterceptorService
 import android.os.Build
 import android.os.Bundle
 import android.view.KeyEvent
@@ -66,10 +69,38 @@ class MainActivity : ComponentActivity() {
 
     private lateinit var launcherViewModel: LauncherViewModel
 
+    private val controlCenterReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            if (intent?.action == "com.example.OPEN_CONTROL_CENTER") {
+                if (::launcherViewModel.isInitialized) {
+                    launcherViewModel.toggleControlCenter(true)
+                }
+            }
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         hideSystemStatusBar()
+
+        try {
+            val serviceIntent = Intent(this, TopTouchInterceptorService::class.java)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                androidx.core.content.ContextCompat.startForegroundService(this, serviceIntent)
+            } else {
+                startService(serviceIntent)
+            }
+        } catch (e: Exception) {
+            // ignore
+        }
+
+        val filter = IntentFilter("com.example.OPEN_CONTROL_CENTER")
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            registerReceiver(controlCenterReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
+        } else {
+            registerReceiver(controlCenterReceiver, filter)
+        }
 
         val database = LauncherDatabase.getDatabase(applicationContext)
         val appsRepository = AppsRepository(applicationContext, database.pinnedAppDao())
@@ -600,6 +631,15 @@ class MainActivity : ComponentActivity() {
             insetsController.hide(WindowInsetsCompat.Type.statusBars())
         } catch (e: Exception) {
             // Fallback
+        }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        try {
+            unregisterReceiver(controlCenterReceiver)
+        } catch (e: Exception) {
+            // ignore
         }
     }
 

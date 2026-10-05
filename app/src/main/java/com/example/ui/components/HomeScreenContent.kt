@@ -6,7 +6,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
+import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -75,9 +77,37 @@ fun HomeScreenContent(
     isFlashlightOn: Boolean = false,
     modifier: Modifier = Modifier
 ) {
+    val globalSwipeUpDetector = Modifier.pointerInput(Unit) {
+        awaitPointerEventScope {
+            while (true) {
+                val down = awaitFirstDown(requireUnconsumed = false)
+                val pointerId = down.id
+                val startY = down.position.y
+                var triggered = false
+                try {
+                    while (true) {
+                        val event = awaitPointerEvent(pass = PointerEventPass.Initial)
+                        val change = event.changes.firstOrNull { it.id == pointerId } ?: break
+                        if (!change.pressed) break
+                        val deltaY = change.position.y - startY
+                        if (deltaY < -35f && !triggered) {
+                            triggered = true
+                            change.consume()
+                            onOpenDrawer()
+                            break
+                        }
+                    }
+                } catch (e: Exception) {
+                    // ignore
+                }
+            }
+        }
+    }
+
     Column(
         modifier = modifier
             .fillMaxSize()
+            .then(globalSwipeUpDetector)
             .launcherGestures(
                 gestureService = gestureService,
                 thresholdDp = settings.gestureSensitivity.thresholdDp,

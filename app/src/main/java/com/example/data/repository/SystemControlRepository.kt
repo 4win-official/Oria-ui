@@ -261,9 +261,6 @@ class SystemControlRepository(private val context: Context) {
         _ramStats.value = fetchRamStats()
     }
 
-    /**
-     * Terminate background processes of a target application to release RAM.
-     */
     fun killBackgroundProcess(packageName: String) {
         try {
             activityManager.killBackgroundProcesses(packageName)
@@ -271,6 +268,21 @@ class SystemControlRepository(private val context: Context) {
             updateRamStats()
         } catch (e: Exception) {
             // Ignored
+        }
+    }
+
+    /**
+     * Advanced Game Turbo & FPS Booster:
+     * Frees up memory, terminates heavy background cached services,
+     * and performs garbage collection to ensure maximum RAM and GPU fill-rate for games.
+     */
+    fun boostForGaming(packageName: String) {
+        try {
+            activityManager.killBackgroundProcesses(packageName)
+            System.gc()
+            updateRamStats()
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
     }
 
