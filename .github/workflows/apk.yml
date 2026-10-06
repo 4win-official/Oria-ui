@@ -6,9 +6,14 @@ on:
     branches:
       - main
 
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 40
 
     steps:
       - name: Checkout
@@ -20,8 +25,13 @@ jobs:
           distribution: temurin
           java-version: "21"
 
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "9.3.1"
 
       - name: Create env file
         run: |
@@ -44,14 +54,12 @@ jobs:
             -validity 10000 \
             -dname "CN=Android Debug,O=Android,C=US"
 
-      - name: Grant permission
-        run: chmod +x gradlew
-
       - name: Build APK
-        run: ./gradlew assembleDebug --stacktrace
+        run: gradle assembleDebug --stacktrace --no-daemon
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: Oria-UI-APK
           path: app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
